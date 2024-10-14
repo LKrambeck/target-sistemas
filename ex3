@@ -1,0 +1,48 @@
+const fs = require('fs').promises;
+
+// Função para ler o arquivo JSON e retornar uma Promise com os dados parseados
+async function lerFaturamentoJSON(nomeArquivo) {
+    try {
+        const data = await fs.readFile(nomeArquivo, 'utf8');
+        const faturamento = JSON.parse(data);
+        return faturamento.map(dia => dia.valor);
+    } catch (erro) {
+        throw new Error(`Erro ao ler o arquivo JSON: ${erro.message}`);
+    }
+}
+
+function encontrarMenorMaiorFaturamento(faturamento) {
+    const valoresValidos = faturamento.filter(valor => valor > 0);
+    return {
+        menor: Math.min(...valoresValidos),
+        maior: Math.max(...valoresValidos)
+    };
+}
+
+function calcularMediaFaturamento(faturamento) {
+    const valoresValidos = faturamento.filter(valor => valor > 0);
+    const soma = valoresValidos.reduce((acc, valor) => acc + valor, 0);
+    return soma / valoresValidos.length;
+}
+
+function contarDiasAcimaDaMedia(faturamento, media) {
+    return faturamento.filter(valor => valor > media).length;
+}
+
+async function analisarFaturamento(nomeArquivo) {
+    try {
+        const faturamento = await lerFaturamentoJSON(nomeArquivo);
+        const { menor, maior } = encontrarMenorMaiorFaturamento(faturamento);
+        const media = calcularMediaFaturamento(faturamento);
+        const diasAcimaDaMedia = contarDiasAcimaDaMedia(faturamento, media);
+
+        console.log(`Menor faturamento: R$ ${menor.toFixed(2)}`);
+        console.log(`Maior faturamento: R$ ${maior.toFixed(2)}`);
+        console.log(`Número de dias com faturamento acima da média: ${diasAcimaDaMedia}`);
+    } catch (erro) {
+        console.error('Erro ao analisar o faturamento:', erro);
+    }
+}
+
+// Executar a análise
+analisarFaturamento('faturamento.json');
